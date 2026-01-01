@@ -1,6 +1,11 @@
 #include <iostream>
+#include "epsim.h"
 
 int main() {
-    std::cout << "hello world" << std::endl;
+    std::cout << "---- epaper-orrery ----" << std::endl;
+
+    Epsim e(400, 300); 
+    e.Generate("image.png");
+
     return 0;
 }

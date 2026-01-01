@@ -6,14 +6,14 @@
 
 # Compiler and flags
 CXX      := g++
-CXXFLAGS := -Wall
+CXXFLAGS := -g -Wall
 
 # Directories
 SRC_DIR   := src
 BUILD_DIR := build
 
 # Files
-SOURCES := main.cpp utils.cpp
+SOURCES := main.cpp epsim.cpp
 OBJECTS := $(SOURCES:%.cpp=$(BUILD_DIR)/%.o)
 TARGET  := $(BUILD_DIR)/out
 
