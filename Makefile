@@ -13,7 +13,7 @@ SRC_DIR   := src
 BUILD_DIR := build
 
 # Files
-SOURCES := main.cpp epsim.cpp
+SOURCES := main.cpp epsim.cpp ws.cpp
 OBJECTS := $(SOURCES:%.cpp=$(BUILD_DIR)/%.o)
 TARGET  := $(BUILD_DIR)/out
 

@@ -3,40 +3,47 @@
 #include <vector>
 #include <sstream>
 #include <iostream>
+#include <stdint.h>
+
 #include "epsim.h"
 #include "stb_image_write.h"
+
 
 // Epsim: E-paper simulator
 // Generate a PNG of what would appear on a e-ink display by generating PNGs. 
 
-
 // Constructor
-Epsim::Epsim(int f_width, int f_height)
+Epsim::Epsim(int w, int h) : m_width(w), m_height(h), pixels(w*h, 0) {}
+
+void Epsim::Image2Vector(uint8_t *Image, std::size_t len)
 {
-    m_width = f_width;
-    m_height = f_height;
+    std::cout << "len: " << len << std::endl;
+    if (len > 0 && Image == nullptr)
+    {
+        throw std::invalid_argument("Data in Image buffer is null!");
+    }
+
+    pixels = std::vector<unsigned char>(Image, Image + len);
 }
 
-void Epsim::Generate(std::string f_filename)
+void Epsim::Save(std::string f_filename)
 {
-    std::vector<unsigned char> pixels(m_width*m_height, 0);
+    
 
-    int count = 0;
-    for (auto& p : pixels)
-    {
-        if ((count/m_width)%2 == 0)
-        {
-            p = count%2 ? 0 : 255;
-        }
-        else
-        {
-            p = count%2 ? 255 : 0;
-        }
-        
-        
-
-        ++count;
-    }
+    /* Test Image */
+    // int count = 0;
+    // for (auto& p : pixels)
+    // {
+    //     if ((count/m_width)%2 == 0)
+    //     {
+    //         p = count%2 ? 0 : 255;
+    //     }
+    //     else
+    //     {
+    //         p = count%2 ? 255 : 0;
+    //     }
+    //     ++count;
+    // }
 
     // fill pixels with grayscale
     std::stringstream ss;
