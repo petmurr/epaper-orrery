@@ -182,3 +182,60 @@ void Ws::Debug(std::string str)
     if (debug)
         std::cout << str << std::endl;
 }
+
+void Ws::Paint_Clear(UWORD Color)
+{	
+	if(Paint.Scale == 2) {
+		for (UWORD Y = 0; Y < Paint.HeightByte; Y++) {
+			for (UWORD X = 0; X < Paint.WidthByte; X++ ) {//8 pixel =  1 byte
+				UDOUBLE Addr = X + Y*Paint.WidthByte;
+				Paint.Image[Addr] = Color;
+			}
+		}		
+    }else if(Paint.Scale == 4) {
+        for (UWORD Y = 0; Y < Paint.HeightByte; Y++) {
+			for (UWORD X = 0; X < Paint.WidthByte; X++ ) {
+				UDOUBLE Addr = X + Y*Paint.WidthByte;
+				Paint.Image[Addr] = (Color<<6)|(Color<<4)|(Color<<2)|Color;
+			}
+		}		
+	}else if(Paint.Scale == 6 || Paint.Scale == 7 || Paint.Scale == 16) {
+		for (UWORD Y = 0; Y < Paint.HeightByte; Y++) {
+			for (UWORD X = 0; X < Paint.WidthByte; X++ ) {
+				UDOUBLE Addr = X + Y*Paint.WidthByte;
+				Paint.Image[Addr] = (Color<<4)|Color;
+			}
+		}		
+	}
+}
+
+void Ws::Paint_NewImage(UBYTE *image, UWORD Width, UWORD Height, UWORD Rotate, UWORD Color)
+{
+    Paint.Image = NULL;
+    Paint.Image = image;
+
+    Paint.WidthMemory = Width;
+    Paint.HeightMemory = Height;
+    Paint.Color = Color;    
+    Paint.Scale = 2;
+    Paint.WidthByte = (Width % 8 == 0)? (Width / 8 ): (Width / 8 + 1);
+    Paint.HeightByte = Height;    
+//    printf("WidthByte = %d, HeightByte = %d\r\n", Paint.WidthByte, Paint.HeightByte);
+//    printf(" EPD_WIDTH / 8 = %d\r\n",  122 / 8);
+   
+    Paint.Rotate = Rotate;
+    Paint.Mirror = MIRROR_NONE;
+    
+    if(Rotate == ROTATE_0 || Rotate == ROTATE_180) {
+        Paint.Width = Width;
+        Paint.Height = Height;
+    } else {
+        Paint.Width = Height;
+        Paint.Height = Width;
+    }
+}
+
+void Ws::Paint_SelectImage(UBYTE *image)
+{
+    Paint.Image = image;
+}

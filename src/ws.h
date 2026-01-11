@@ -51,6 +51,11 @@ typedef enum {
 } MIRROR_IMAGE;
 #define MIRROR_IMAGE_DFT MIRROR_NONE
 
+#define ROTATE_0            0
+#define ROTATE_90           90
+#define ROTATE_180          180
+#define ROTATE_270          270
+
 #define WHITE          0xFF
 #define BLACK          0x00
 #define RED            BLACK
@@ -72,4 +77,7 @@ public:
     
     void Paint_SetPixel(UWORD Xpoint, UWORD Ypoint, UWORD Color);
     void Debug(std::string str);
+    void Paint_Clear(UWORD Color);
+    void Paint_NewImage(UBYTE *image, UWORD Width, UWORD Height, UWORD Rotate, UWORD Color);
+    void Paint_SelectImage(UBYTE *image);
 };
