@@ -2,18 +2,30 @@
 #include <iostream>
 #include "ws.h"
 
+
 // This adapts functions in ../waveshare_lib (code written by waveshare)
 
 Ws::Ws()
 {
+    /* you have to edit the startup_stm32fxxx.s file and set a big enough heap size */
+    m_imagesize = ((EPD_4IN2_V2_WIDTH % 8 == 0)? (EPD_4IN2_V2_WIDTH / 8 ): (EPD_4IN2_V2_WIDTH / 8 + 1)) * EPD_4IN2_V2_HEIGHT;
 
+    if((m_canvas_data = (UBYTE *)malloc(m_imagesize)) == NULL) {
+        printf("Failed to apply for black memory...\r\n");
+        // return -1;
+    }
+
+    Paint_NewImage(m_canvas_data, EPD_4IN2_V2_WIDTH, EPD_4IN2_V2_HEIGHT, 0, WHITE);
+    Paint_SelectImage(m_canvas_data);
+    Paint_Clear(WHITE);
 }
 
 void Ws::Paint_DrawCircle(  UWORD X_Center, UWORD Y_Center, UWORD Radius,
                             UWORD Color, DOT_PIXEL Line_width, DRAW_FILL Draw_Fill)
 {
-    if (X_Center > Paint.Width || Y_Center >= Paint.Height) {
-        Debug("Paint_DrawCircle Input exceeds the normal display range\r\n");
+    if (X_Center > m_paint.Width || Y_Center >= m_paint.Height) {
+        if (m_debug)
+            Debug("Paint_DrawCircle Input exceeds the normal display range\r\n");
         return;
     }
 
@@ -80,8 +92,9 @@ parameter:
 void Ws::Paint_DrawPoint(   UWORD Xpoint, UWORD Ypoint, UWORD Color,
                             DOT_PIXEL Dot_Pixel, DOT_STYLE Dot_Style)
 {
-    if (Xpoint > Paint.Width || Ypoint > Paint.Height) {
-        Debug("Paint_DrawPoint Input exceeds the normal display range\r\n");
+    if (Xpoint > m_paint.Width || Ypoint > m_paint.Height) {
+        if (m_debug)
+            Debug("Paint_DrawPoint Input exceeds the normal display range\r\n");
         return;
     }
 
@@ -107,103 +120,105 @@ void Ws::Paint_DrawPoint(   UWORD Xpoint, UWORD Ypoint, UWORD Color,
 
 void Ws::Paint_SetPixel(UWORD Xpoint, UWORD Ypoint, UWORD Color)
 {
-    if(Xpoint > Paint.Width || Ypoint > Paint.Height){
-        Debug("Exceeding display boundaries\r\n");
+    if(Xpoint > m_paint.Width || Ypoint > m_paint.Height){
+        if (m_debug)
+            Debug("Exceeding display boundaries\r\n");
         return;
     }      
     UWORD X, Y;
-    switch(Paint.Rotate) {
+    switch(m_paint.Rotate) {
     case 0:
         X = Xpoint;
         Y = Ypoint;  
         break;
     case 90:
-        X = Paint.WidthMemory - Ypoint - 1;
+        X = m_paint.WidthMemory - Ypoint - 1;
         Y = Xpoint;
         break;
     case 180:
-        X = Paint.WidthMemory - Xpoint - 1;
-        Y = Paint.HeightMemory - Ypoint - 1;
+        X = m_paint.WidthMemory - Xpoint - 1;
+        Y = m_paint.HeightMemory - Ypoint - 1;
         break;
     case 270:
         X = Ypoint;
-        Y = Paint.HeightMemory - Xpoint - 1;
+        Y = m_paint.HeightMemory - Xpoint - 1;
         break;
     default:
         return;
     }
     
-    switch(Paint.Mirror) {
+    switch(m_paint.Mirror) {
     case MIRROR_NONE:
         break;
     case MIRROR_HORIZONTAL:
-        X = Paint.WidthMemory - X - 1;
+        X = m_paint.WidthMemory - X - 1;
         break;
     case MIRROR_VERTICAL:
-        Y = Paint.HeightMemory - Y - 1;
+        Y = m_paint.HeightMemory - Y - 1;
         break;
     case MIRROR_ORIGIN:
-        X = Paint.WidthMemory - X - 1;
-        Y = Paint.HeightMemory - Y - 1;
+        X = m_paint.WidthMemory - X - 1;
+        Y = m_paint.HeightMemory - Y - 1;
         break;
     default:
         return;
     }
 
-    if(X > Paint.WidthMemory || Y > Paint.HeightMemory){
-        Debug("Exceeding display boundaries\r\n");
+    if(X > m_paint.WidthMemory || Y > m_paint.HeightMemory){
+        if (m_debug)
+            Debug("Exceeding display boundaries\r\n");
         return;
     }
     
-    if(Paint.Scale == 2){
-        UDOUBLE Addr = X / 8 + Y * Paint.WidthByte;
-        UBYTE Rdata = Paint.Image[Addr];
+    if(m_paint.Scale == 2){
+        UDOUBLE Addr = X / 8 + Y * m_paint.WidthByte;
+        UBYTE Rdata = m_paint.Image[Addr];
         if(Color == BLACK)
-            Paint.Image[Addr] = Rdata & ~(0x80 >> (X % 8));
+            m_paint.Image[Addr] = Rdata & ~(0x80 >> (X % 8));
         else
-            Paint.Image[Addr] = Rdata | (0x80 >> (X % 8));
-    }else if(Paint.Scale == 4){
-        UDOUBLE Addr = X / 4 + Y * Paint.WidthByte;
+            m_paint.Image[Addr] = Rdata | (0x80 >> (X % 8));
+    }else if(m_paint.Scale == 4){
+        UDOUBLE Addr = X / 4 + Y * m_paint.WidthByte;
         Color = Color % 4;//Guaranteed color scale is 4  --- 0~3
-        UBYTE Rdata = Paint.Image[Addr];
+        UBYTE Rdata = m_paint.Image[Addr];
         Rdata = Rdata & (~(0xC0 >> ((X % 4)*2)));//Clear first, then set value
-        Paint.Image[Addr] = Rdata | ((Color << 6) >> ((X % 4)*2));
-    }else if(Paint.Scale == 6 || Paint.Scale == 7 || Paint.Scale == 16){
-		UDOUBLE Addr = X / 2  + Y * Paint.WidthByte;
-		UBYTE Rdata = Paint.Image[Addr];
+        m_paint.Image[Addr] = Rdata | ((Color << 6) >> ((X % 4)*2));
+    }else if(m_paint.Scale == 6 || m_paint.Scale == 7 || m_paint.Scale == 16){
+		UDOUBLE Addr = X / 2  + Y * m_paint.WidthByte;
+		UBYTE Rdata = m_paint.Image[Addr];
 		Rdata = Rdata & (~(0xF0 >> ((X % 2)*4)));//Clear first, then set value
-		Paint.Image[Addr] = Rdata | ((Color << 4) >> ((X % 2)*4));
+		m_paint.Image[Addr] = Rdata | ((Color << 4) >> ((X % 2)*4));
 		// printf("Add =  %d ,data = %d\r\n",Addr,Rdata);
 	}
 }
 
 void Ws::Debug(std::string str)
 {
-    if (debug)
+    if (m_debug)
         std::cout << str << std::endl;
 }
 
 void Ws::Paint_Clear(UWORD Color)
 {	
-	if(Paint.Scale == 2) {
-		for (UWORD Y = 0; Y < Paint.HeightByte; Y++) {
-			for (UWORD X = 0; X < Paint.WidthByte; X++ ) {//8 pixel =  1 byte
-				UDOUBLE Addr = X + Y*Paint.WidthByte;
-				Paint.Image[Addr] = Color;
+	if(m_paint.Scale == 2) {
+		for (UWORD Y = 0; Y < m_paint.HeightByte; Y++) {
+			for (UWORD X = 0; X < m_paint.WidthByte; X++ ) {//8 pixel =  1 byte
+				UDOUBLE Addr = X + Y*m_paint.WidthByte;
+				m_paint.Image[Addr] = Color;
 			}
 		}		
-    }else if(Paint.Scale == 4) {
-        for (UWORD Y = 0; Y < Paint.HeightByte; Y++) {
-			for (UWORD X = 0; X < Paint.WidthByte; X++ ) {
-				UDOUBLE Addr = X + Y*Paint.WidthByte;
-				Paint.Image[Addr] = (Color<<6)|(Color<<4)|(Color<<2)|Color;
+    }else if(m_paint.Scale == 4) {
+        for (UWORD Y = 0; Y < m_paint.HeightByte; Y++) {
+			for (UWORD X = 0; X < m_paint.WidthByte; X++ ) {
+				UDOUBLE Addr = X + Y*m_paint.WidthByte;
+				m_paint.Image[Addr] = (Color<<6)|(Color<<4)|(Color<<2)|Color;
 			}
 		}		
-	}else if(Paint.Scale == 6 || Paint.Scale == 7 || Paint.Scale == 16) {
-		for (UWORD Y = 0; Y < Paint.HeightByte; Y++) {
-			for (UWORD X = 0; X < Paint.WidthByte; X++ ) {
-				UDOUBLE Addr = X + Y*Paint.WidthByte;
-				Paint.Image[Addr] = (Color<<4)|Color;
+	}else if(m_paint.Scale == 6 || m_paint.Scale == 7 || m_paint.Scale == 16) {
+		for (UWORD Y = 0; Y < m_paint.HeightByte; Y++) {
+			for (UWORD X = 0; X < m_paint.WidthByte; X++ ) {
+				UDOUBLE Addr = X + Y*m_paint.WidthByte;
+				m_paint.Image[Addr] = (Color<<4)|Color;
 			}
 		}		
 	}
@@ -211,31 +226,31 @@ void Ws::Paint_Clear(UWORD Color)
 
 void Ws::Paint_NewImage(UBYTE *image, UWORD Width, UWORD Height, UWORD Rotate, UWORD Color)
 {
-    Paint.Image = NULL;
-    Paint.Image = image;
+    m_paint.Image = NULL;
+    m_paint.Image = image;
 
-    Paint.WidthMemory = Width;
-    Paint.HeightMemory = Height;
-    Paint.Color = Color;    
-    Paint.Scale = 2;
-    Paint.WidthByte = (Width % 8 == 0)? (Width / 8 ): (Width / 8 + 1);
-    Paint.HeightByte = Height;    
-//    printf("WidthByte = %d, HeightByte = %d\r\n", Paint.WidthByte, Paint.HeightByte);
+    m_paint.WidthMemory = Width;
+    m_paint.HeightMemory = Height;
+    m_paint.Color = Color;    
+    m_paint.Scale = 2;
+    m_paint.WidthByte = (Width % 8 == 0)? (Width / 8 ): (Width / 8 + 1);
+    m_paint.HeightByte = Height;    
+//    printf("WidthByte = %d, HeightByte = %d\r\n", m_paint.WidthByte, m_paint.HeightByte);
 //    printf(" EPD_WIDTH / 8 = %d\r\n",  122 / 8);
    
-    Paint.Rotate = Rotate;
-    Paint.Mirror = MIRROR_NONE;
+    m_paint.Rotate = Rotate;
+    m_paint.Mirror = MIRROR_NONE;
     
     if(Rotate == ROTATE_0 || Rotate == ROTATE_180) {
-        Paint.Width = Width;
-        Paint.Height = Height;
+        m_paint.Width = Width;
+        m_paint.Height = Height;
     } else {
-        Paint.Width = Height;
-        Paint.Height = Width;
+        m_paint.Width = Height;
+        m_paint.Height = Width;
     }
 }
 
 void Ws::Paint_SelectImage(UBYTE *image)
 {
-    Paint.Image = image;
+    m_paint.Image = image;
 }

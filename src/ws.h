@@ -2,6 +2,9 @@
 
 #include <stdint.h>
 
+#define EPD_4IN2_V2_WIDTH 400
+#define EPD_4IN2_V2_HEIGHT 300
+
 #define UBYTE   uint8_t
 #define UWORD   uint16_t
 #define UDOUBLE uint32_t
@@ -63,9 +66,11 @@ typedef enum {
 class Ws
 {    
 public:
-    PAINT Paint;
+    PAINT m_paint;          // Holds canvas data
+    UBYTE *m_canvas_data;   // Pointer to canvas data on heap
+    UWORD m_imagesize;        // How large the image is 
 
-    bool debug = true;
+    bool m_debug = false;    // Turn on or off debug prints
 
     Ws();
 
