@@ -3,6 +3,9 @@
 #include <cmath>
 #include <ctime>
 #include <map>
+#include <array>
+#include <string>
+#include "astronomy.h"
 #include "epsim.h"
 #include "ws.h"
 
@@ -11,6 +14,47 @@
 #define J2000_UNIX 946728000
 #define SECONDS_IN_DAY 86400
 
+static const std::array<astro_body_t, 8> planets =
+{
+    BODY_MERCURY,
+    BODY_VENUS,  
+    BODY_EARTH,  
+    BODY_MARS,   
+    BODY_JUPITER,
+    BODY_SATURN, 
+    BODY_URANUS, 
+    BODY_NEPTUNE
+};
+
+static const std::array<std::string, 8> planet_names =
+{
+    "Mercury",
+    "Venus",
+    "Earth",
+    "Mars",
+    "Jupiter",
+    "Saturn",
+    "Uranus",
+    "Neptune"
+};
+
+void printPlanetAngles()
+{
+    astro_time_t time = Astronomy_CurrentTime();
+    for (size_t i = 0; i < planets.size(); ++i)
+    {
+        astro_vector_t position = Astronomy_HelioVector(planets[i], time);
+        double angle = std::atan2(position.y, position.x);
+        double deg = angle * 180.0 / 3.1415926535;
+        if (deg < 0.0) deg += 360.0;
+
+        std::cout << planet_names[i] << "angle = " << deg << "\n";
+    }
+}
+
+
+//
+//
 //                          M       V       E       M       J       S       U       N
 float planet_radius[8] =    {0.035, 0.087,  0.091,  0.049,  1.0,    0.83,   0.363,  0.352};     // Relative to Jupiter's radius
 float radius_mod[8] =       {4,     3,      3,      3,      .9,      .9,      .9,   .9};        // Scale radius
@@ -95,6 +139,10 @@ vec2 deg2coords(float deg, int distance)
 
 int main() {
     std::cout << "---- epaper-orrery ----" << std::endl;
+
+    std::cout << "from astronomy engine:\n";
+    printPlanetAngles();
+
 
     Ws ws;              // "Waveshare" object contains c functions from waveshare's library (draw line, circle...)
     Epsim e(400, 300);  // E-paper "simulator" creates a PNG using the data from waveshare object
