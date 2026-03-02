@@ -12,8 +12,16 @@ CXXFLAGS := -g -Wall
 SRC_DIR   := src
 BUILD_DIR := build
 
+# Includes
+# INC_DIR   := include
+# INCLUDES := -I$(INC_DIR)
+
+# Libraries
+# LIB_DIR  := lib
+# LIBS     := -L$(LIB_DIR) -lm -lpthread
+
 # Files
-SOURCES := main.cpp epsim.cpp ws.cpp
+SOURCES := main.cpp epsim.cpp ws.cpp astronomy.c
 OBJECTS := $(SOURCES:%.cpp=$(BUILD_DIR)/%.o)
 TARGET  := $(BUILD_DIR)/out
 
@@ -25,7 +33,7 @@ all: $(TARGET)
 
 # Link object files into final executable
 $(TARGET): $(OBJECTS)
-	$(CXX) $^ -o $@
+	$(CXX) $^ $(LIBS) -o $@
 
 # Compile .cpp -> .o
 $(BUILD_DIR)/%.o: %.cpp | $(BUILD_DIR)

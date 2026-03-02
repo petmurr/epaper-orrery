@@ -5,7 +5,7 @@
 
 // This adapts functions in ../waveshare_lib (code written by waveshare)
 
-Ws::Ws()
+Ws::Ws(bool background_dark)
 {
     /* you have to edit the startup_stm32fxxx.s file and set a big enough heap size */
     m_imagesize = ((EPD_4IN2_V2_WIDTH % 8 == 0)? (EPD_4IN2_V2_WIDTH / 8 ): (EPD_4IN2_V2_WIDTH / 8 + 1)) * EPD_4IN2_V2_HEIGHT;
@@ -17,7 +17,7 @@ Ws::Ws()
 
     Paint_NewImage(m_canvas_data, EPD_4IN2_V2_WIDTH, EPD_4IN2_V2_HEIGHT, 0, WHITE);
     Paint_SelectImage(m_canvas_data);
-    Paint_Clear(WHITE);
+    Paint_Clear(background_dark ? BLACK : WHITE);
 }
 
 void Ws::Paint_DrawCircle(  UWORD X_Center, UWORD Y_Center, UWORD Radius,

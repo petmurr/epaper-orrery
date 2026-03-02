@@ -72,7 +72,7 @@ public:
 
     bool m_debug = false;    // Turn on or off debug prints
 
-    Ws();
+    Ws(bool background_dark);
 
     void Paint_DrawCircle(  UWORD X_Center, UWORD Y_Center, UWORD Radius,
                             UWORD Color, DOT_PIXEL Line_width, DRAW_FILL Draw_Fill);
