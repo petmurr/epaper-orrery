@@ -42,3 +42,6 @@ build\*
 
 # debug information files
 *.dwo
+
+# epaper from pi
+from_pi

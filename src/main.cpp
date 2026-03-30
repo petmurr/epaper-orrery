@@ -27,8 +27,8 @@ static const bool darkmode = true;
 
 vec2 get_good_center()
 {
-    const int max_shift_x = 80;
-    const int max_shift_y = 70;
+    const int max_shift_x = 100;
+    const int max_shift_y = 100;
     // average jupiter, saturn, uranus, neptune to shift orrery for all planets to be visible
     double outer_planet_sum = 0;
     double outer_planet_avg;
@@ -67,9 +67,15 @@ vec2 get_good_center()
 //
 //                          M       V       E       M       J       S       U       N
 float planet_radius[8] =    {0.035, 0.087,  0.091,  0.049,  1.0,    0.83,   0.363,  0.352};     // Relative to Jupiter's radius
-float radius_mod[8] =       {4,     3,      3,      3,      .9,      .9,      .9,   .9};        // Scale radius
+
 float planet_distance[8] =  {0.013, 0.024,  0.033,  0.051,  0.173,  0.317,  0.639,  1.0};       // Relative to Neptune's orbital radius
-float distance_mod[8] =     {2,     2,      2,      2,      1.2,      1,      .6,    .45};
+
+// looks ok
+// float radius_mod[8] =       {4,     3,      3,      3,      .9,      .9,      .9,   .9};
+// float distance_mod[8] =     {2,     2,      2,      2,      1.2,      1,      .6,    .45};
+
+float radius_mod[8] =       {4,     3,      3,      3,      .9,      .9,      .9,   .9};
+float distance_mod[8] =     {2,     2,      2,      2,      1.2,      1,      .67,    .53};
 
 double orbital_periods[8] = {
     87.9691,
@@ -111,7 +117,7 @@ double planetAngle2(int planet_i)
     if (deg < 0.0) deg += 360.0;
     deg = 360 - deg;
 
-    printf("%d: %.1f\n", planet_i, deg);
+    // printf("%d: %.1f\n", planet_i, deg);
 
     return deg;
 
@@ -170,7 +176,7 @@ int main() {
 
 
 
-    Ws ws(darkmode);              // "Waveshare" object contains c functions from waveshare's library (draw line, circle...)
+    Ws ws(darkmode);    // "Waveshare" object contains c functions from waveshare's library (draw line, circle...)
     Epsim e(400, 300);  // E-paper "simulator" creates a PNG using the data from waveshare object
 
     // ws.Paint_NewImage()
@@ -183,6 +189,7 @@ int main() {
     {
         // Draw orbit line
         int orbital_radius_px = (distance_mod[i]*planet_distance[i])*NEPTUNE_ORBITAL_RADIUS_IN_PIXELS;
+        printf("Paint_DrawCircle(%d, %d, %d, %s, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);\n", 200 + offset.x, 150 + offset.y, orbital_radius_px, darkmode ? "WHITE" : "BLACK");
         ws.Paint_DrawCircle(200 + offset.x, 150 + offset.y, orbital_radius_px, darkmode ? WHITE : BLACK, DOT_PIXEL_1X1, DRAW_FILL_EMPTY); 
 
         // Draw planet & outline
@@ -194,6 +201,8 @@ int main() {
         // vec2 pos = deg2coords(planetAngle2(i), orbital_radius_px);
         vec2 pos = deg2coords(planetAngle2(i), orbital_radius_px, offset);
 
+        printf("Paint_DrawCircle(%d, %d, %d, %s, DOT_PIXEL_1X1, DRAW_FILL_FULL);\n", pos.x, pos.y, outline_radius_px, darkmode ? "BLACK" : "WHITE");
+        printf("Paint_DrawCircle(%d, %d, %d, %s, DOT_PIXEL_1X1, DRAW_FILL_FULL);\n", pos.x, pos.y, outline_radius_px, darkmode ? "WHITE" : "BLACK");
         ws.Paint_DrawCircle(pos.x, pos.y, outline_radius_px, darkmode ? BLACK : WHITE, DOT_PIXEL_1X1, DRAW_FILL_FULL);
         ws.Paint_DrawCircle(pos.x, pos.y, planet_radius_px, darkmode ? WHITE : BLACK, DOT_PIXEL_1X1, DRAW_FILL_FULL);
     }

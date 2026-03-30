@@ -14,9 +14,14 @@ Ws::Ws(bool background_dark)
         printf("Failed to apply for black memory...\r\n");
         // return -1;
     }
-
+    
+    printf("Paint_NewImage(m_canvas_data, EPD_4IN2_V2_WIDTH, EPD_4IN2_V2_HEIGHT, 0, WHITE);\n");
     Paint_NewImage(m_canvas_data, EPD_4IN2_V2_WIDTH, EPD_4IN2_V2_HEIGHT, 0, WHITE);
+    
+    printf("Paint_SelectImage(m_canvas_data);\n");
     Paint_SelectImage(m_canvas_data);
+
+    printf("Paint_Clear(%s);\n", background_dark ? "BLACK" : "WHITE");
     Paint_Clear(background_dark ? BLACK : WHITE);
 }
 
